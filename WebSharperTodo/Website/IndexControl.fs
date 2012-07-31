@@ -9,33 +9,34 @@ open Website
 
 module Todo =
     [<JavaScript>]
-    let moveDroppedItem (item:JQuery) (dropZone:JQuery) = 
+    let moveDroppedItem (item:JQuery) (dropZone:JQuery) =
         item.AppendTo(dropZone).Ignore
 
     [<JavaScript>]
-    let initDrag element = 
-        let config = 
+    let initDrag element =
+        let config =
             DraggableConfiguration(
                 revert = true, cursor = "move", helper = "clone")
-        Draggable.New(element, config) |> ignore
+        Draggable.New(element, config)
 
     [<JavaScript>]
-    let initDrop element = 
-        let config = 
+    let initDrop (element: Html.Element) =
+        let config =
             DroppableConfiguration(
                 hoverClass = "ui-state-active", accept = ".draggable")
-        let dropZone = Droppable.New(element, config) 
-        dropZone.OnDrop( fun ev element -> 
-            moveDroppedItem <| JQuery.Of(element.Dom) <| JQuery.Of(ev.CurrentTarget) )
+        let dropZone = Droppable.New(element, config)
+        dropZone.OnDrop( fun ev el ->
+            moveDroppedItem <| el.Draggable <| JQuery.Of(element.Dom) )
+        dropZone
 
     [<JavaScript>]
-    let main tasks = 
-        Div [ yield Attr.Class "tasks droppable";  
-            for task in tasks do
-                yield Div [ 
-                    Attr.Class "ui-widget-content draggable"; Text task] 
-                    |>! initDrag :> IPagelet
-        ] |>! initDrop   
+    let main tasks =
+        Div [Attr.Class "tasks droppable"] -< [
+            for task in tasks ->
+                Div [Attr.Class "ui-widget-content draggable"; Text task]
+                |> initDrag
+        ]
+        |> initDrop
 
 type IndexControl() =
     inherit Web.Control()
